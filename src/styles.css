@@ -1,0 +1,4 @@
+html,body{margin:0;width:100%;height:100%;background:#111827;overflow:hidden}
+body{display:grid;place-items:center;font-family:system-ui,sans-serif}
+.game-shell{width:min(100vw,1280px);aspect-ratio:16/9}
+canvas{display:block;width:100%;height:100%;background:#12152b}

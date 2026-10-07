@@ -7,6 +7,8 @@ Resolver puzles dibujando líneas, rampas y polígonos que se convierten en elem
 
 ## Stack
 - HTML5 + JavaScript (ES Modules)
+- Vite 8.x + Node.js 24 LTS
+- Vitest + ESLint
 - Canvas 2D como capa de renderizado
 - Sin motor de física externo
 - Ejecución objetivo: Chrome/Edge en Windows y Lab. 05
@@ -72,6 +74,10 @@ Consulta [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 - [Arquitectura](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Trabajo en equipo](docs/CONTRIBUTING.md)
+- [Plan técnico-artístico](docs/PLAN_TECNICO_ARTISTICO_ASTRO_TRAZOS.md)
+- [Art Bible](docs/art/ART_BIBLE.md)
+- [Pipeline de assets](docs/art/ASSET_PIPELINE.md)
+- [Inventario visual](docs/art/ASSET_MANIFEST.md)
 - [Recursos y licencias](THIRD_PARTY_NOTICES.md)
 
 ## Estado

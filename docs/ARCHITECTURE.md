@@ -1,20 +1,7 @@
-# Arquitectura de Astro-Trazos
+# Arquitectura jugable de Astro‑Trazos
 
-## Principio central
-La capa de presentación usa Canvas 2D. Los algoritmos académicos obligatorios se implementan en módulos propios y no se delegan a un motor de física o colisiones.
+`index.html` conserva el arte y los controles de las siete escenas. `src/playable.js` añade los eventos del pincel, el estado de cada nivel, las reacciones de Nilo, la tinta, las pistas opcionales y la progresión. La selección de niveles está abierta desde el inicio; las estrellas registran cuáles se completaron.
 
-## Pipeline
-Input → lógica del nivel → física simplificada → colisiones → transformaciones → clipping → render → HUD/debug.
+`src/geometry/brushMath.js` ofrece distancias, longitudes, áreas, intersecciones y simplificación de trayectorias. `src/geometry/shapeRecognition.js` aproxima trazos imperfectos a segmentos, círculos y polígonos. `src/geometry/routePuzzle.js` evalúa la ruta del primer nivel. Las escenas restantes usan sus propias reglas geométricas en `src/playable.js`.
 
-## Módulos
-- `src/math`: matrices homogéneas 3x3 y operaciones vectoriales.
-- `src/clipping`: clipping de líneas/polígonos.
-- `src/collision`: colisiones e intersecciones.
-- `src/physics`: integración temporal y gravedad.
-- `src/input`: captura de ratón/táctil y trazos.
-- `src/render`: Canvas 2D, fondos, partículas y HUD.
-- `src/levels`: definición declarativa de tutorial y niveles.
-- `src/debug`: visualización académica para sustentación.
-
-## Regla académica
-Canvas dibuja. La lógica matemática relevante la implementa el equipo.
+Las pistas crean trazos SVG dorados con animación dentro de la escena actual. No alteran los trazos guardados, la tinta ni el resultado. Se ocultan al dibujar, cambiar de nivel o reiniciar. `scripts/make-standalone.mjs` integra los archivos necesarios en `dist/Astro-Trazos-Presentacion.html` para la presentación sin conexión.

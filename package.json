@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "standalone": "npm run build && node scripts/make-standalone.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

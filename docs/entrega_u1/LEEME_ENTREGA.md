@@ -6,7 +6,7 @@
 | --- | --- |
 | 1. Código | Repositorio GitHub y `1_Codigo/` dentro de `IIAD65_G04_U1.zip` |
 | 2. Informe técnico | `2_Informe.pdf` |
-| 3. Manual de usuario | `3_Manual_Usuario.pdf` (7 páginas) |
+| 3. Manual de usuario | `3_Manual_Usuario.pdf` (9 páginas) |
 | 4. Manual técnico | `4_Manual_Tecnico.pdf` (8 páginas) |
 | 5. Video de demostración | `5_Video_Demostracion.mp4` y guion editable/PDF |
 | 6. Presentación | `editables/6_Presentacion.pptx` y `6_Presentacion.pdf` |
@@ -19,7 +19,8 @@ Los archivos DOCX y PPTX de `editables/` facilitan revisión y corrección. Las 
 ## Pendientes que requieren validación humana
 
 - **Constancia DAEMON:** el PDF entregado por el equipo contiene línea de firma vacía. Obtener la firma auténtica del responsable si el docente la exige.
-- **Ficha Anexo A:** falta la firma del docente y confirmar el nombre completo y las funciones de todos los integrantes. No se atribuyeron aportes de Git sin evidencia.
+- **Ficha Anexo A:** falta la firma del docente y completar el nombre de Allcca Mauycalla. Los roles consignados son propuestas para organizar la exposición; el grupo debe confirmar que corresponden al trabajo real. No se atribuyeron aportes de Git sin evidencia.
+- **Historial del repositorio:** los commits actuales aparecen bajo el nombre/correo de William Medina; la guía pide commits visibles de todos los integrantes. Cada uno debe subir un aporte real desde su cuenta y poder explicarlo.
 - **RSU:** el expediente declara autorizaciones familiares comunicadas por DAEMON y registra siete estudiantes con códigos. Conservar los permisos originales en un lugar privado; evitar publicar identidades de menores.
 - **Aprendizaje:** la jornada documenta la actividad, pero no incluye medición antes/después. El informe no afirma mejora de aprendizaje.
 - **Laboratorio 05:** falta ejecutar la copia autónoma y medir rendimiento en sus equipos.

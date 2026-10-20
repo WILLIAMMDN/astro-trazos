@@ -5,6 +5,7 @@ the user are copied separately; this script never alters their assertions.
 """
 from pathlib import Path
 from shutil import copy2
+import json
 from docx import Document
 from docx.shared import Cm, Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -21,6 +22,8 @@ OUT = ROOT / "docs" / "entrega_u1"
 EDIT = OUT / "editables"
 for folder in (OUT, EDIT): folder.mkdir(parents=True, exist_ok=True)
 SHOT = ROOT / "docs" / "capturas"
+FIG = OUT / "figuras"
+BENCH = json.loads((OUT / 'benchmark_local.json').read_text(encoding='utf-8'))
 NAVY = RGBColor(8, 31, 69)
 BLUE = RGBColor(25, 86, 151)
 GRAY = RGBColor(75, 85, 99)
@@ -35,6 +38,8 @@ def setup(doc, report=False):
     normal.paragraph_format.space_after = Pt(7 if report else 6)
     for name, size in [('Title', 23), ('Heading 1', 16), ('Heading 2', 12)]:
         s = styles[name]; s.font.name = 'Arial'; s.font.size = Pt(size); s.font.bold = True; s.font.color.rgb = NAVY
+    code = styles.add_style('Code', 1); code.font.name='Consolas'; code.font.size=Pt(8.5)
+    code.paragraph_format.space_after=Pt(6); code.paragraph_format.line_spacing=1.05
     footer = sec.footer.paragraphs[0]; footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
     footer.add_run('ASTRO-TRAZOS  •  UNAJMA  •  2026-II     |     Página ')
     field = OxmlElement('w:fldSimple'); field.set(qn('w:instr'), 'PAGE'); footer._p.append(field)
@@ -50,6 +55,7 @@ def title(doc, heading, subtitle, kind):
     doc.add_paragraph('\n')
     p=doc.add_paragraph(f'Tipo de documento: {kind}\nVersión: 20 de octubre de 2026\nRepositorio: https://github.com/WILLIAMMDN/astro-trazos')
     doc.add_paragraph('Equipo consignado en el informe previo: Max William Medina Castro; Neil Angelo Hiyo Juarez Anderson; Allcca Mauycalla (nombre completo por confirmar).')
+    doc.add_paragraph('Roles propuestos para la exposición: Max — integración y programación; Neil — diseño pedagógico y pruebas; Allcca — arte e interfaz. Confirmar distribución real con el grupo.')
     doc.add_paragraph('Docente: Mtro. Jhamer Anderson Rojas Silva.')
     p=doc.add_paragraph('Andahuaylas, Perú · 2026'); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
 
@@ -69,23 +75,34 @@ def pic(doc, name, caption, width=15.5):
     p.add_run().add_picture(str(SHOT/name), width=Cm(width))
     p=doc.add_paragraph(caption); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
     for r in p.runs: r.italic=True; r.font.size=Pt(9)
+def figure(doc, name, caption, width=15.5):
+    p=doc.add_paragraph();p.alignment=WD_ALIGN_PARAGRAPH.CENTER
+    p.add_run().add_picture(str(FIG/name),width=Cm(width))
+    p=doc.add_paragraph(caption);p.alignment=WD_ALIGN_PARAGRAPH.CENTER
+    for r in p.runs:r.italic=True;r.font.size=Pt(9)
+def codeblock(doc, lines):
+    doc.add_paragraph('\n'.join(lines),style='Code')
 def page(doc): doc.add_page_break()
 def save(doc, name): doc.save(EDIT/name)
 
 # Report — the eleven parts follow the teacher's required order.
 d=setup(Document(), report=True)
-title(d, 'ASTRO-TRAZOS', 'Videojuego 2D educativo con geometría dibujada', 'Informe técnico de avance')
+title(d, '1. ASTRO-TRAZOS', 'Videojuego 2D educativo con geometría dibujada', 'Informe técnico de avance')
 page(d)
-h(d,'1. Resumen')
+h(d,'2. Resumen')
 para(d,'Astro-Trazos es un videojuego 2D para estudiantes de 9 a 12 años que convierte trazos dibujados en construcciones geométricas funcionales. El jugador crea rutas, vectores, rampas, rectángulos, barreras, polígonos y órbitas. Cada escena muestra medidas y una consecuencia visual: el personaje se desplaza, una trayectoria cae, la balanza reacciona o un rayo se detiene en una intersección. El proyecto responde a la necesidad de explorar geometría mediante ensayo, observación y corrección dentro de un entorno lúdico. La versión actual contiene siete escenas seleccionables, pistas visuales opcionales y una copia HTML autónoma para demostración sin conexión. Su implementación usa SVG y JavaScript modular; integra transformaciones homogéneas de 3 × 3, recorte Cohen–Sutherland al viewport y detección de colisiones de segmentos con descarte AABB. La verificación automatizada actual comprende 17 pruebas y la ejecución de lint. El 18 de octubre de 2026 se documentó una jornada virtual de demostración con siete estudiantes de la Academia Virtual DAEMON. Esta evidencia acredita la actividad, pero no establece una mejora de aprendizaje medida. El trabajo pendiente incluye observación pedagógica con una rúbrica antes/después y validación presencial en el Laboratorio 05.')
-h(d,'2. Introducción')
+h(d,'3. Introducción')
 para(d,'Los conceptos de longitud, ángulo, área, intersección y polígono suelen verse como resultados numéricos. Aquí se presentan como propiedades de objetos que el alumno construye con el pincel. La pregunta de diseño es si una forma creada y ajustada por el estudiante puede explicar una consecuencia del juego con claridad suficiente para volver a intentarlo.')
 para(d,'Objetivo general: desarrollar un videojuego 2D educativo que use algoritmos de computación gráfica para que niños de 9 a 12 años experimenten con propiedades geométricas. Objetivos específicos: (a) implementar transformaciones, clipping y colisiones; (b) relacionar cada construcción con una medida observable; (c) ofrecer ejemplos visuales opcionales; (d) comprobar la ejecución y documentar la intervención RSU.')
-h(d,'3. Marco teórico')
+h(d,'4. Marco teórico')
 para(d,'Un punto plano se representa como p = (x, y, 1). Una transformación afín se aplica como p′ = T·R·S·p, donde T traslada, R rota y S escala. En el juego, esta composición coloca y anima a Nilo en cada escena. El recorte Cohen–Sutherland asigna códigos de región a los extremos y conserva la parte de cada segmento dentro del viewport. Esto evita dibujar trazos fuera de la escena.')
+para(d,'p′ = T(x,y) · R(θ) · S(sx,sy) · p.                                           (1)')
 para(d,'Una colisión entre segmentos se calcula con parámetros p + t·r y q + u·s. Cuando el producto cruzado de r y s es distinto de cero y t,u pertenecen a [0,1], existe un cruce. Una caja envolvente AABB descarta pares imposibles antes de calcular la intersección precisa. Para un rectángulo, A = base × altura; las longitudes del nivel se expresan en unidades de la escena, no en centímetros físicos.')
-h(d,'4. Análisis y diseño')
+para(d,'t = ((q − p) × s) / (r × s),    u = ((q − p) × r) / (r × s).                    (2)')
+para(d,'A = base × altura; 40 u × 30 u = 1200 u².                                  (3)')
+h(d,'5. Análisis y diseño')
 para(d,'Beneficiarios previstos: escolares de 9 a 12 años. La interacción principal usa ratón, táctil o lápiz. Los trazos imperfectos se aproximan a la primitiva del nivel: segmento, rectángulo en pasos de 5 u, hexágono o curva orbital. El ejemplo visual enseña una solución posible sin gastar tinta y sin completar el nivel. Al soltar el pincel se evalúa el intento y se activa la simulación aunque falle.')
+para(d,'Tabla 1. Relación entre las escenas y los conceptos. Fuente: elaboración propia a partir del juego.')
 table(d,['Escena','Propiedad','Respuesta visible'],[
  ('Despegue','Longitud y pendiente de dos segmentos','Nilo sigue la ruta y evita o toca el cometa'),
  ('Impulso vectorial','Vector y ángulo','Trayectoria parabólica y aterrizaje'),
@@ -94,13 +111,14 @@ table(d,['Escena','Propiedad','Respuesta visible'],[
  ('Bloquea los rayos','Intersección de segmentos','Cada rayo se detiene en el cruce'),
  ('Polígonos lejanos','Hexágono cerrado','Escudo de seis lados'),
  ('Núcleo cósmico','Radio y perímetro','Órbita cerrada alrededor del núcleo')])
-pic(d,'01_menu.png','Figura 1. Menú real de la versión evaluada.',14.5)
-h(d,'5. Implementación')
+pic(d,'01_menu.png','Figura 1. Menú real de la versión evaluada. Fuente: captura propia, 20/10/2026.',14.5)
+h(d,'6. Implementación')
 para(d,'La interfaz ilustrada y las escenas SVG viven en index.html. src/playable.js administra eventos del pincel, estado, tinta, animaciones, pistas, mediciones y simulaciones. src/geometry contiene simplificación, reconocimiento de formas y reglas de ruta. src/math/Mat3.js compone transformaciones. src/clipping/CohenSutherland.js recorta los trazos antes de convertirlos a rutas visibles. src/collision/Collisions.js ofrece AABB e intersección de segmentos para las barreras láser.')
 para(d,'Flujo: entrada del puntero → puntos crudos → simplificación/ajuste → cálculo de magnitudes → evaluación de la escena → animación y retroalimentación. En El peso justo, el arrastre cuantiza base y altura a múltiplos de 5 u; se muestra A = b·h mientras el jugador ajusta. La figura de 40 u × 30 u produce 1200 u². En Bloquea los rayos, la intersección calculada recorta visualmente cada haz y decide si la defensa funciona.')
-pic(d,'09_peso_construccion.png','Figura 2. Medidas de base, altura y área durante la construcción.',14.5)
-h(d,'6. Pruebas y resultados')
+pic(d,'09_peso_construccion.png','Figura 2. Medidas de base, altura y área durante la construcción. Fuente: captura propia, 20/10/2026.',14.5)
+h(d,'7. Pruebas y resultados')
 para(d,'Se ejecutaron npm test y npm run lint en Node 24.15.0. Resultado registrado: 17 pruebas aprobadas y lint sin errores. Las pruebas cubren ajuste de trazos, reglas de ruta, reconocimiento de formas, matrices, clipping y colisiones. Una prueba manual en Chrome verificó que el arrastre de la escena de área construye 40 u × 30 u = 1200 u² y que la interfaz no emite errores de página. También se generó una copia HTML autónoma.')
+para(d,'Tabla 2. Verificación funcional. Fuente: ejecución local del proyecto, 20/10/2026.')
 table(d,['Criterio','Resultado actual','Alcance'],[
  ('Escenas seleccionables','7 de 7','Verificado en el menú'),
  ('Pruebas automatizadas','17 aprobadas','Lógica y algoritmos gráficos'),
@@ -108,11 +126,16 @@ table(d,['Criterio','Resultado actual','Alcance'],[
  ('Portabilidad','HTML autónomo generado','Abrir en Chrome/Edge; falta prueba en Lab 05'),
  ('Aprendizaje medido','Sin medición','Requiere instrumento pedagógico')])
 para(d,'La fidelidad de la medición depende de la escala de cada escena y de la cuantización del pincel. Las unidades u son unidades internas; las etiquetas de píxeles corresponden al espacio SVG. No se presenta una cifra de FPS del Laboratorio 05 porque no se realizó esa medición en su equipo.')
-h(d,'7. Discusión')
-para(d,'La versión actual hace que una decisión geométrica cause un resultado jugable y mantiene el acceso libre a todas las escenas para la demostración. La escena de área es la más sencilla de explicar en público porque se puede anticipar 40 × 30 y comprobar el efecto en la balanza. El valor didáctico observado aquí es de diseño e interacción; aún falta una evaluación con estudiantes que compare comprensión antes y después de jugar.')
+para(d,'Tabla 3. Tiempo local de 100 000 llamadas en Node 24.15.0, mediana de cinco rondas tras calentamiento. Fuente: scripts/bench-graphics.mjs y benchmark_local.json.')
+table(d,['Operación','Tiempo','Alcance'],[
+ ('Matriz 3×3 y punto',f'{BENCH["matrix"]} ms','Sin SVG'),
+ ('Clipping de segmento',f'{BENCH["clipping"]} ms','Sin renderizado'),
+ ('Intersección de segmentos',f'{BENCH["intersection"]} ms','Sin FPS')])
+para(d,'Estos tiempos de algoritmos excluyen renderizado y no representan FPS del juego ni del Laboratorio 05.')
 h(d,'8. Responsabilidad social universitaria')
 para(d,'La evidencia proporcionada por el equipo documenta la Jornada Especial de Geometría Digital «Aprender geometría a través del juego», realizada por Google Meet el 18 de octubre de 2026 para siete estudiantes de la Academia Virtual DAEMON. Registra capturas del menú, un desafío de bloqueo de rayos y un nivel completado; la lista usa códigos E-01 a E-07 para proteger identidades. La constancia identifica a William Medina como responsable de DAEMON y miembro del equipo universitario. La línea de firma del documento entregado está vacía. Las autorizaciones familiares se declaran en el expediente, sin adjuntar formularios individuales. Estas piezas deben revisarse según el criterio del docente.')
 para(d,'La actividad fue una demostración interactiva; las evidencias recibidas no contienen una evaluación pre y post ni permiten inferir un efecto causal en el aprendizaje. Se propone una sesión posterior con dos problemas equivalentes, una rúbrica de explicación de medidas y registro anónimo de intentos.')
+para(d,'Ética y uso responsable: el juego no recopila datos personales. Las capturas del expediente muestran al expositor y usan códigos para los alumnos; cualquier autorización familiar original debe conservarse de forma privada. Los recursos visuales y tipográficos se documentan en ARTE_GENERADO.md y THIRD_PARTY_NOTICES.md.')
 h(d,'9. Conclusiones y trabajo futuro')
 bullets(d,[
  'Se implementaron siete escenas donde la geometría dibujada altera el comportamiento del juego.',
@@ -135,10 +158,10 @@ save(d,'2_Informe.docx')
 d=setup(Document()); title(d,'ASTRO-TRAZOS','Dibuja · prueba · descubre geometría','Manual de usuario')
 page(d); h(d,'1. Qué es y qué necesitas')
 para(d,'Astro-Trazos es un juego de geometría para edades aproximadas de 9 a 12 años. Dibujas directamente sobre cada mapa. El juego interpreta el trazo y muestra qué ocurre con su forma y sus medidas. Puedes abrir cualquier nivel desde el menú.')
-bullets(d,['Equipo con Windows, macOS o Linux y navegador Chrome o Edge actualizado.','Ratón, panel táctil, pantalla táctil o lápiz. Sonido opcional.','Para usar el archivo Astro-Trazos-Presentacion.html no se requiere Internet ni instalar Node.'])
+bullets(d,['Equipo con Windows, macOS o Linux y navegador Chrome o Edge actualizado.','Ratón, panel táctil, pantalla táctil o lápiz; pantalla de 1280 × 720 recomendada.','Para usar el archivo Astro-Trazos-Presentacion.html no se requiere Internet ni instalar Node. El rendimiento en Lab. 05 aún debe verificarse.'])
 h(d,'2. Inicio rápido')
 for s in ['Descarga la entrega y descomprime el ZIP en una carpeta.','Abre 1_Codigo/dist/Astro-Trazos-Presentacion.html en Chrome o Edge.','Pulsa Jugar para iniciar Despegue o selecciona una tarjeta de nivel.','Lee el objetivo visible, dibuja con el pincel y suelta para ver el resultado.','Usa Ver ejemplo si necesitas observar una construcción posible.']:
-    para(d,s)
+    d.add_paragraph(s,style='List Number')
 pic(d,'01_menu.png','Figura 1. Elige un nivel desde el menú.',14.7)
 page(d); h(d,'3. Controles y lectura de la pantalla')
 table(d,['Control','Acción'],[('Arrastrar sobre el mapa','Dibujar o ajustar una figura'),('Ver ejemplo','Mostrar u ocultar pista visual'),('Deshacer / Z','Retirar el último trazo'),('Borrar / Reiniciar / R','Empezar la escena otra vez'),('Jugar','Probar la construcción cuando la escena lo indique'),('Pausa / Esc','Abrir o cerrar el menú de pausa')])
@@ -156,7 +179,14 @@ page(d); h(d,'6. Defensas, escudos y órbitas')
 para(d,'Bloquea los rayos: dibuja barreras que crucen cada rayo rojo. El punto donde se cruzan detiene el láser. Una barrera que no toca el haz no lo bloquea.')
 para(d,'Polígonos lejanos: conecta seis esquinas para formar un escudo hexagonal cerrado. Núcleo cósmico: dibuja una órbita cerrada alrededor del centro, manteniendo una distancia similar durante el recorrido.')
 pic(d,'06_rayos.png','Figura 5. Las defensas cortan los láseres en su intersección.',14.7)
-page(d); h(d,'7. Problemas frecuentes y apoyo')
+page(d); h(d,'7. Galería de las otras escenas')
+para(d,'Estas pantallas completan el recorrido visual de los siete desafíos. En cada una, el objetivo aparece arriba y la tinta disponible a la derecha.')
+pic(d,'04_salto.png','Figura 6. Salto: construye una rampa y observa su ángulo.',13)
+pic(d,'07_poligonos.png','Figura 7. Polígonos: une seis vértices para cerrar el escudo.',13)
+page(d); h(d,'8. Órbita y cierre del recorrido')
+para(d,'En Núcleo cósmico, comienza en una marca, rodea el centro y vuelve al inicio. Observa si el radio se mantuvo casi constante y si el contorno quedó cerrado. Puedes volver al menú y repetir cualquier nivel.')
+pic(d,'08_orbita.png','Figura 8. Órbita: radio y cierre alrededor del núcleo.',14.7)
+page(d); h(d,'9. Problemas frecuentes y apoyo')
 table(d,['Situación','Qué hacer'],[('No se dibuja','Empieza dentro del área del mapa y mantén presionado mientras arrastras.'),('La figura no parece correcta','Usa Deshacer; dibuja un gesto continuo y observa el ajuste final.'),('Se acabó la tinta','Pulsa Reiniciar o Borrar para recuperar el depósito.'),('No se abre el HTML','Extrae el ZIP y abre el archivo con Chrome/Edge.'),('No sé cómo empezar','Pulsa Ver ejemplo; después dibuja tu propia solución.')])
 para(d,'Contacto del proyecto: https://github.com/WILLIAMMDN/astro-trazos/issues. Para la presentación, usa el archivo HTML autónomo incluido en el paquete.')
 save(d,'3_Manual_Usuario.docx')
@@ -165,27 +195,48 @@ save(d,'3_Manual_Usuario.docx')
 d=setup(Document()); title(d,'ASTRO-TRAZOS','Arquitectura, algoritmos y reproducción','Manual técnico')
 page(d); h(d,'1. Plataforma y estructura')
 para(d,'Aplicación cliente con HTML, CSS, SVG y JavaScript ES modules. Herramientas verificadas: Node 24.15.0, Vite 8.3.4, Vitest 5.0.5 y ESLint 10.13.0. No usa backend ni datos personales. La versión autónoma empaqueta los recursos para abrirse localmente.')
+para(d,'Tabla 1. Módulos principales y responsabilidad. Fuente: código del proyecto.')
 table(d,['Ruta','Responsabilidad'],[('index.html','Escenas ilustradas y controles'),('src/playable.js','Entrada, estados, simulaciones y HUD'),('src/geometry/','Métricas, rutas y reconocimiento'),('src/math/Mat3.js','Transformaciones 2D homogéneas'),('src/clipping/CohenSutherland.js','Recorte al viewport'),('src/collision/Collisions.js','AABB e intersección'),('tests/','Pruebas automatizadas'),('scripts/make-standalone.mjs','HTML autónomo')])
 page(d); h(d,'2. Arquitectura y flujo gráfico')
 para(d,'Arquitectura: navegador → eventos pointer → estado de escena → ajuste geométrico → evaluador de nivel → animación SVG → HUD. El menú, la escena activa, el modal de pausa y el resultado son estados de la interfaz. Los trazos se almacenan por escena y se pueden deshacer o borrar.')
 para(d,'Pipeline de dibujo: (1) capturar coordenadas del puntero en el viewBox; (2) simplificar puntos y reconocer la intención geométrica; (3) cuantizar o ajustar cuando corresponde; (4) calcular longitud, ángulo, área o intersección; (5) recortar lo visible al viewport; (6) evaluar condiciones; (7) animar el resultado. La pista visual se dibuja en una capa separada y no altera el estado.')
-pic(d,'05_peso.png','Figura 1. Escena de área en el juego.',14.5)
+figure(d,'arquitectura.png','Figura 1. Módulos implementados y sus dependencias. Fuente: elaboración propia.',14.5)
+figure(d,'pipeline.png','Figura 2. Del gesto al resultado visual. Fuente: elaboración propia.',14.5)
 page(d); h(d,'3. Transformaciones y clipping')
 para(d,'Mat3 representa matrices afines 3 × 3. La composición usada para Nilo es M = T(x,y)·R(θ)·S(sx,sy). Se aplica a un punto homogéneo [x,y,1]ᵀ. El orden coloca al personaje, orienta su pose y ajusta su escala sin cambiar la geometría original del sprite.')
+para(d,'M = T(x,y) · R(θ) · S(sx,sy).                                          (1)')
+codeblock(d,['// src/playable.js: composición afín para ubicar a Nilo',
+ 'const matrix = Mat3.multiply(Mat3.multiply(',
+ '  Mat3.translation(x, y), Mat3.rotation(tilt * Math.PI / 180)),',
+ '  Mat3.scale(scale, scale));'])
 para(d,'Cohen–Sutherland asigna códigos de región izquierdo, derecho, superior e inferior. Si ambos extremos tienen código cero, acepta el segmento; si comparten un bit externo, lo rechaza; en otro caso, calcula la intersección con el borde y repite. Los caminos del pincel usan este recorte antes de formar su ruta SVG visible.')
+codeblock(d,['// src/clipping/CohenSutherland.js: rechazo trivial',
+ 'if (!(ca | cb)) return [a, b];  // ambos dentro del viewport',
+ 'if (ca & cb) return null;       // fuera por el mismo lado'])
 para(d,'Archivos clave: src/math/Mat3.js, src/clipping/CohenSutherland.js y función clippedLinePath en src/playable.js. El viewBox es el sistema común para entrada y dibujo.')
 page(d); h(d,'4. Colisiones y matemáticas jugables')
 para(d,'El segmento A(t)=p+t·r y B(u)=q+u·s se cruza cuando 0≤t,u≤1. Se obtiene t=(q−p)×s/(r×s) y u=(q−p)×r/(r×s). Si r×s≈0, el caso paralelo no produce cruce único. Una prueba AABB descarta segmentos separados antes de calcular t y u. El láser termina en la primera intersección encontrada.')
+para(d,'t = ((q−p)×s)/(r×s); u = ((q−p)×r)/(r×s).                           (2)')
+codeblock(d,['// src/collision/Collisions.js: tramo de intersección exacta',
+ 'if (Math.abs(den) < 1e-9) return null; // paralelas',
+ 'if (t < 0 || t > 1 || u < 0 || u > 1) return null;',
+ 'return { x: a.x + t*(b.x-a.x), y: a.y + t*(b.y-a.y), t, u };'])
 para(d,'Área: A=b·h; la escena cuantiza dimensiones a 5 u para hacer construible el valor 1200 u². Vector: componentes Δx,Δy y ángulo atan2. Rampa: inclinación atan2(−Δy,Δx). Órbita: cierre del contorno y dispersión de radios. Polígono: número de lados y cierre. La lógica de cada escena está en src/playable.js; los cálculos reutilizables están en src/geometry/.')
-pic(d,'06_rayos.png','Figura 2. Láseres con colisiones entre segmentos.',14.5)
+para(d,'A = base × altura = 40 u × 30 u = 1200 u².                         (3)')
+pic(d,'06_rayos.png','Figura 3. Láseres con colisiones entre segmentos. Fuente: captura propia, 20/10/2026.',13.5)
 page(d); h(d,'5. Instalación y construcción')
 for s in ['Clonar: git clone https://github.com/WILLIAMMDN/astro-trazos.git','Entrar a la carpeta: cd astro-trazos','Instalar dependencias reproducibles: npm ci','Servidor de desarrollo: npm run dev','Comprobaciones: npm run lint y npm test','Empaquetar demo: npm run standalone','Abrir dist/Astro-Trazos-Presentacion.html en Chrome o Edge.']:
     para(d,s)
 para(d,'No editar manualmente dist: es generado y está ignorado por Git. La carpeta 1_Codigo del ZIP incluye una copia lista para la exposición.')
 page(d); h(d,'6. Pruebas, rendimiento y límites')
 para(d,'Al 20 de octubre de 2026 se verificaron 17 pruebas Vitest aprobadas y ESLint sin errores. Se comprobó manualmente el arrastre de 40 u × 30 u en Chrome. La medición de FPS y la ejecución en los equipos concretos del Laboratorio 05 siguen pendientes; una cifra obtenida en un navegador automatizado no sustituye esa prueba.')
+para(d,'Tabla 2. Rendimiento local de algoritmos en Node v24.15.0, Windows. Cada tiempo es la mediana de cinco rondas de 100 000 llamadas tras calentamiento. Fuente: scripts/bench-graphics.mjs.')
+table(d,['Operación','Tiempo local','Alcance'],[
+ ('Matriz 3×3 y punto',f'{BENCH["matrix"]} ms','Sin SVG'),
+ ('Clipping de segmento',f'{BENCH["clipping"]} ms','Sin renderizado'),
+ ('Intersección de segmentos',f'{BENCH["intersection"]} ms','Sin FPS')])
 para(d,'Límites: las unidades dependen del espacio de escena, el reconocimiento aproxima trazos, y aún no hay evaluación controlada de aprendizaje. La adaptación a pantallas pequeñas y dispositivos antiguos requiere prueba adicional. No se recogen datos personales de niños en el juego.')
-pic(d,'08_orbita.png','Figura 3. Escena orbital de la versión actual.',14.5)
+pic(d,'08_orbita.png','Figura 4. Escena orbital de la versión actual. Fuente: captura propia, 20/10/2026.',14)
 page(d); h(d,'7. Mantenimiento y trazabilidad')
 para(d,'Para agregar una escena: definir su SVG y objetivos, registrar estado y tinta en playable.js, implementar ajuste geométrico y evaluación, añadir al menú y crear pruebas de las condiciones matemáticas. Mantener el arte original y las fuentes en docs/ARTE_GENERADO.md y THIRD_PARTY_NOTICES.md. Revisar git log para contribuciones reales; no atribuir commits inexistentes.')
 para(d,'Diagrama lógico: puntero → brushMath / shapeRecognition → evaluador → collision/Mat3/clipping → SVG + retroalimentación. Referencias de curso y fórmulas constan en el informe técnico.')
@@ -195,7 +246,7 @@ d=setup(Document()); h(d,'FICHA DEL PROYECTO · UNIDAD I')
 para(d,'Computación Gráfica · IIAD65 · Grupo 04 · UNAJMA · 20 de octubre de 2026')
 table(d,['Campo','Información'],[
  ('Curso y grupo','Computación Gráfica IIAD65 · Grupo 04'),
- ('Integrantes','Max William Medina Castro; Neil Angelo Hiyo Juarez Anderson; Allcca Mauycalla (nombre completo y roles por confirmar)'),
+ ('Integrantes y roles propuestos','Max William Medina Castro — programación e integración; Neil Angelo Hiyo Juarez Anderson — diseño pedagógico y pruebas; Allcca Mauycalla [nombre completo pendiente] — arte e interfaz. Roles sugeridos para organizar la exposición; el equipo debe confirmarlos.'),
  ('Tema','Videojuego 2D educativo con sprites vectoriales'),
  ('Problema','La geometría suele enseñarse sin una consecuencia visual manipulable por el alumno.'),
  ('Objetivo','Construir y probar figuras geométricas dibujadas que alteren siete desafíos jugables.'),
@@ -248,7 +299,7 @@ slide('Mecánica central','El pincel crea objetos medibles', '03_vector.png',['T
 slide('Siete desafíos','Una propiedad distinta en cada escena',None,['Ruta: longitud y pendiente   •   Vector: dirección','Rampa: ángulo   •   Balanza: área','Láseres: intersección   •   Escudo: polígono','Órbita: radio y cierre'])
 slide('Ejemplo: El peso justo','40 u × 30 u = 1200 u²', '09_peso_construccion.png',['Medidas mientras arrastras','Pasos de 5 unidades','La balanza reacciona al área'])
 slide('Intersección que funciona','Una barrera detiene un láser donde lo cruza', '06_rayos.png',['AABB descarta pares lejanos','Intersección calcula el punto','El haz termina en ese punto'])
-slide('Algoritmos gráficos','Técnicas solicitadas para el tema 7',None,['Transformación: T · R · S con matrices 3 × 3','Clipping: Cohen–Sutherland al viewport','Colisiones: AABB + segmentos','SVG + animación del resultado'])
+slide('Algoritmos gráficos','Técnicas solicitadas para el tema 7',None,['Transformación: M = T · R · S (matriz 3 × 3)','Clipping: Cohen–Sutherland; c₁ & c₂ ≠ 0 → rechazar','Colisión: t = ((q−p) × s) / (r × s)','Área: A = base × altura'])
 slide('Arquitectura y verificación','Del puntero al resultado', '07_poligonos.png',['Puntero → ajuste → medida → evaluación → animación','Node 24 · Vite 8 · Vitest 5','17 pruebas aprobadas · lint limpio'])
 slide('RSU documentada','Jornada virtual del 18 de octubre de 2026',None,['Academia Virtual DAEMON','Siete estudiantes identificados por códigos','Capturas de menú, desafío y cierre','Sin medición de aprendizaje pre/post'])
 slide('Demostración y próximos pasos','Construir, explicar y comprobar', '08_orbita.png',['Demo sin conexión disponible','Ensayo pendiente en Laboratorio 05','Rúbrica de aprendizaje por aplicar','Firma de constancia pendiente'])

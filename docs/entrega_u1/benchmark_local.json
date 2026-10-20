@@ -1,0 +1,8 @@
+{
+  "environment": "Node v24.15.0 en Windows",
+  "iterations": 100000,
+  "note": "Mediana de cinco rondas, tras una ronda de calentamiento; sin renderizado SVG ni FPS.",
+  "matrix": 13.75,
+  "clipping": 5.02,
+  "intersection": 1.92
+}

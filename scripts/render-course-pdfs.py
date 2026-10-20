@@ -29,6 +29,8 @@ styles.add(ParagraphStyle(name='TitleCourse',fontName='Arial-Bold',fontSize=23,l
 styles.add(ParagraphStyle(name='CenterCourse',parent=styles['BodyCourse'],alignment=TA_CENTER))
 styles.add(ParagraphStyle(name='CaptionCourse',fontName='Arial',fontSize=8.5,leading=12,alignment=TA_CENTER,textColor=colors.HexColor('#4B5563'),spaceAfter=9))
 styles.add(ParagraphStyle(name='CellCourse',fontName='Arial',fontSize=8.5,leading=11))
+styles.add(ParagraphStyle(name='CodeCourse',fontName='Courier',fontSize=8,leading=10,
+    leftIndent=12,spaceBefore=5,spaceAfter=8,textColor=colors.HexColor('#173957')))
 
 def paragraph_text(p):
     return escape(p.text).replace('\n','<br/>')
@@ -53,7 +55,7 @@ def footer(canvas,doc):
     canvas.restoreState()
 
 for file in EDIT.glob('*.docx'):
-    src=Document(file); report=file.name.startswith('2_'); flow=[]
+    src=Document(file); report=file.name.startswith('2_'); flow=[]; number=0
     for child in src.element.body.iterchildren():
         if child.tag==qn('w:p'):
             p=Paragraph(child,src)
@@ -67,8 +69,11 @@ for file in EDIT.glob('*.docx'):
             if sty=='Title':which='TitleCourse'
             elif sty=='Heading 1':which='H1Course'
             elif sty=='Heading 2':which='H2Course'
+            elif sty=='Code':which='CodeCourse'
             elif p.alignment==1:which='CenterCourse'
             elif 'Figura ' in p.text:which='CaptionCourse'
+            if sty=='List Number':number+=1;txt=f'{number}. '+txt
+            elif sty=='List Bullet':txt='• '+txt
             flow.append(P(txt,styles[which]))
         elif child.tag==qn('w:tbl'):
             t=DocTable(child,src)
